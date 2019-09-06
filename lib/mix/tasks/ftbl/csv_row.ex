@@ -13,20 +13,21 @@ defmodule Ftbl.CSVRow do
     it will assume that the app is already running. In this implementation
     however, the app will load the data before it is ready to accept connections.
   """
-  @typep t :: %__MODULE__{
-           date: binary,
-           division: binary,
-           ftag: integer,
-           fthg: integer,
-           ftr: integer,
-           htag: integer,
-           hthg: integer,
-           htr: integer,
-           id: integer,
-           season: binary,
-           team_away: binary,
-           team_home: binary
-         }
+  @enforce_keys true
+  @opaque t :: %__MODULE__{
+            date: binary,
+            division: binary,
+            ftag: integer,
+            fthg: integer,
+            ftr: integer,
+            htag: integer,
+            hthg: integer,
+            htr: integer,
+            id: integer,
+            season: binary,
+            team_away: binary,
+            team_home: binary
+          }
 
   defstruct [
     :id,

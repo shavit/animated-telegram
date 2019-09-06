@@ -35,8 +35,8 @@ defmodule Mix.Tasks.Ftbl.Load do
       {:error, _reason} ->
         Mix.raise("Error downloading from URL: #{url}")
 
-      res ->
-        IO.inspect(res)
+      _ ->
+        Mix.raise("Unexpected error while making a request")
     end
   end
 
@@ -59,23 +59,27 @@ defmodule Mix.Tasks.Ftbl.Load do
 
   import Ftbl.CSVRow, only: [key_for_index: 1]
 
-  defp process_stream(%File.Stream{} = stream) do
+  @doc """
+  process_stream/1 creates structs of CSVRow from a stream
+  """
+  def process_stream(%File.Stream{} = stream) do
     Enum.map(stream, fn x ->
-      struct =
-        x
-        |> String.trim()
-        |> String.split(",")
-        |> Enum.reduce({-1, []}, fn a, {cur, l} ->
-          cur = cur + 1
-          {cur, [{cur, a} | l]}
-        end)
-        |> elem(1)
-        |> Enum.map(fn {key, value} ->
-          {key_for_index(key), value}
-        end)
-        |> Map.new()
-
-      IO.inspect(Kernel.struct!(Ftbl.CSVRow, struct))
+      Kernel.struct!(Ftbl.CSVRow, process_stream(x))
     end)
+  end
+
+  def process_stream(line) when is_binary(line) do
+    line
+    |> String.trim()
+    |> String.split(",")
+    |> Enum.reduce({-1, []}, fn a, {cur, l} ->
+      cur = cur + 1
+      {cur, [{cur, a} | l]}
+    end)
+    |> elem(1)
+    |> Enum.map(fn {key, value} ->
+      {key_for_index(key), value}
+    end)
+    |> Map.new()
   end
 end
