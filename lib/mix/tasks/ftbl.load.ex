@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Ftbl.Load do
   @moduledoc """
-  Loads footbal data results from a CSV file
+  Loads football data results from a CSV file
 
       mix ftbl.load path /tmp/data.csv
       mix ftbl.load url http://localhost/data.csv
@@ -23,9 +23,7 @@ defmodule Mix.Tasks.Ftbl.Load do
     :inets.start()
     :ssl.start()
 
-    tmp_path =
-      :os.cmd('mktemp')
-      |> :string.trim()
+    tmp_path = :string.trim(:os.cmd('mktemp'))
 
     case :httpc.request(:get, {String.to_charlist(url), []}, [], stream: tmp_path) do
       {:ok, :saved_to_file} ->
@@ -44,9 +42,9 @@ defmodule Mix.Tasks.Ftbl.Load do
 
   defp help do
     Mix.shell().info(~S(Load data results from a CSV file
-      
-	  mix ftbl.load path /tmp/data.csv
-	  mix ftbl.load url http://localhost/data.csv
+
+    mix ftbl.load path /tmp/data.csv
+    mix ftbl.load url http://localhost/data.csv
     ))
   end
 
@@ -57,29 +55,28 @@ defmodule Mix.Tasks.Ftbl.Load do
     end
   end
 
-  import Ftbl.CSVRow, only: [key_for_index: 1]
+  import Ftbl.CSVRow, only: [from_csv_row: 1]
 
   @doc """
   process_stream/1 creates structs of CSVRow from a stream
   """
   def process_stream(%File.Stream{} = stream) do
-    Enum.map(stream, fn x ->
-      Kernel.struct!(Ftbl.CSVRow, process_stream(x))
-    end)
+    stream
+    |> Enum.reduce({[], []}, &process_stream_reducer/2)
+    |> elem(1)
   end
 
-  def process_stream(line) when is_binary(line) do
-    line
-    |> String.trim()
-    |> String.split(",")
-    |> Enum.reduce({-1, []}, fn a, {cur, l} ->
-      cur = cur + 1
-      {cur, [{cur, a} | l]}
-    end)
-    |> elem(1)
-    |> Enum.map(fn {key, value} ->
-      {key_for_index(key), value}
-    end)
-    |> Map.new()
+  def process_stream_reducer(a, {cols, rows}) do
+    [id | cols_head] = columns = a |> String.trim() |> String.split(",")
+    # The first row will have an empty ID
+    if id == "" do
+      {["id" | cols_head], []}
+    else
+      # Parse the table body
+      strct = cols |> Enum.zip(columns) |> Enum.into(%{}) |> from_csv_row
+      # This can be streamed to a source instead of accumulated
+      # But this list is dependent on the head row for mapping
+      {cols, [strct | rows]}
+    end
   end
 end

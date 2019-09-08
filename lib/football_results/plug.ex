@@ -2,6 +2,11 @@ defmodule FootballResults.Plug do
   @moduledoc """
   `FootballResults.Plug` is used as a router for the HTTP server
 
+  This router is based on Plug:
+  https://github.com/elixir-plug/plug
+  Router example:
+  https://hexdocs.pm/plug/readme.html#plug-router
+
   Alternatively a Phoenix app could be generated with a router. Since this is
     small project, using these plugs would be enough.
 
@@ -23,6 +28,14 @@ defmodule FootballResults.Plug do
     * guest, guest
   """
   use Plug.Router
+  import FootballResults.Guardian, only: [encode_and_sign: 3, peek: 1]
+  alias Plug.Cowboy
+
+  # Only for this demo
+  @demo_users [
+    {"admin", "admin"},
+    {"guest", "guest"}
+  ]
 
   # The order of the plugs is important
   plug(:match)
@@ -43,8 +56,12 @@ defmodule FootballResults.Plug do
 
   @doc false
   def start_link(_type, _args) do
-    Plug.Cowboy.http(FootballResults.Plug, [])
+    Cowboy.http(FootballResults.Plug, [])
   end
+
+  #
+  #   Routes
+  #
 
   get "/" do
     # This message need to be changed in production
@@ -60,84 +77,53 @@ defmodule FootballResults.Plug do
 
   # Create an account
   post "/auth/new" do
-    user =
-      case read_body(conn) do
-        {:ok, _,
-         %{body_params: %{"username" => username, "password" => password, "email" => email}}} ->
-          %{username: username, password: password, email: email}
-
-        _ ->
-          send_resp(conn, 400, "bad request")
-          halt(conn)
-      end
-
-    # TODO: Insert the user and read the ID from a database
-    user = Map.put(user, :id, 1)
-    refresh_token = generate_refresh_token()
-
-    case FootballResults.Guardian.encode_and_sign(user, %{}, ttl: {1, :hour}) do
-      {:ok, token, _claims} ->
-        render_json(conn, %{access_token: token, refresh_token: refresh_token})
+    case read_body_params(conn, ["username", "password", "email"]) do
+      {:ok, %{"username" => _, "password" => _, "email" => _} = user_params} ->
+        # TODO: Insert the user and read the ID from a database
+        user = Map.put(user_params, :id, 1)
+        sign_user(conn, user)
 
       _ ->
-        send_resp(conn, 403, "unauthorized")
+        conn |> send_resp(400, "bad request") |> halt
     end
   end
 
   # Refresh a token
   post "/auth/refresh" do
-    # TODO: Add helper for body params
-    %{"access_token" => access_token, "refresh_token" => _refresh_token} =
-      case read_body(conn) do
-        {:ok, _, %{body_params: %{"access_token" => _, "refresh_token" => _} = body_params}} ->
-          body_params
+    case read_body_params(conn, ["access_token", "refresh_token"]) do
+      {:ok, %{"access_token" => access_token, "refresh_token" => _refresh_token}} ->
+        case peek(access_token) do
+          %{claims: %{}, headers: %{"typ" => "JWT"}} ->
+            # TODO: Get the user from the database and validate the
+            #   refresh token
+            sign_user(conn, %{id: 1})
 
-        _ ->
-          send_resp(conn, 400, "bad request")
-          halt(conn)
-      end
-
-    case FootballResults.Guardian.peek(access_token) do
-      %{claims: %{}, headers: %{"typ" => "JWT"}} ->
-        # TODO: Validate the refresh token after the token
-        # TODO: Create access token and save a new refresh token
-        refresh_token = generate_refresh_token()
-        render_json(conn, %{access_token: access_token, refresh_token: refresh_token})
+          _ ->
+            conn |> send_resp(401, "unauthorized") |> halt
+        end
 
       _ ->
-        send_resp(conn, 401, "unauthorized")
+        conn |> send_resp(400, "bad request") |> halt
     end
   end
 
-  # Create a new token
+  # Authenticate a user and create a new token
   post "/auth" do
-    user =
-      case read_body(conn) do
-        {:ok, _, %{body_params: %{"username" => username, "password" => password}}} ->
-          %{username: username, password: password}
+    case read_body_params(conn, ["username", "password"]) do
+      {:ok, %{"username" => username, "password" => password} = user} ->
+        # TODO: Read the ID from a database
+        case Enum.filter(@demo_users, fn {a, b} -> a == username && b == password end) do
+          [demo_user] when is_tuple(demo_user) ->
+            user = Map.put(user, :id, 1)
+            sign_user(conn, user)
 
-        _ ->
-          send_resp(conn, 400, "bad request")
-          halt(conn)
-      end
-
-    # TODO: Read the ID from a database
-    user = Map.put(user, :id, 1)
-
-    case FootballResults.Guardian.encode_and_sign(user, %{}, ttl: {1, :hour}) do
-      {:ok, token, _claims} ->
-        refresh_token = generate_refresh_token()
-        # TOOD: Save the refresh token with expiration time
-        # ..
-        render_json(conn, %{access_token: token, refresh_token: refresh_token})
+          _ ->
+            conn |> send_resp(401, "unauthorized") |> halt
+        end
 
       _ ->
-        send_resp(conn, 403, "unauthorized")
+        conn |> send_resp(400, "bad request") |> halt
     end
-  end
-
-  defp generate_refresh_token() do
-    128 |> :crypto.strong_rand_bytes() |> Base.encode64() |> binary_part(0, 128)
   end
 
   #
@@ -158,15 +144,43 @@ defmodule FootballResults.Plug do
   )
 
   #
-  #  Catch all route. Keep it last
+  #  Catch all endpoint. Keep it last
   #
   match _ do
     send_resp(conn, 404, "not found")
+  end
+
+  #
+  #   Helpers
+  #
+
+  defp generate_refresh_token do
+    128 |> :crypto.strong_rand_bytes() |> Base.encode64() |> binary_part(0, 128)
   end
 
   defp render_json(conn, body) do
     conn
     |> put_resp_content_type("text/plain")
     |> send_resp(200, Poison.encode!(body))
+  end
+
+  defp read_body_params(conn, params) do
+    case read_body(conn) do
+      {:ok, _, %{body_params: body}} -> {:ok, Map.take(body, params)}
+      _ -> {:error, "invalid format"}
+    end
+  end
+
+  defp sign_user(conn, user) do
+    # TODO: Save the refresh token if needed
+    refresh_token = generate_refresh_token()
+
+    case encode_and_sign(user, %{}, ttl: {1, :hour}) do
+      {:ok, token, _claims} ->
+        render_json(conn, %{id: user.id, access_token: token, refresh_token: refresh_token})
+
+      _ ->
+        send_resp(conn, 500, "error signing you in")
+    end
   end
 end

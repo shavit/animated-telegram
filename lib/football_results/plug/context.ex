@@ -1,19 +1,21 @@
 defmodule FootballResults.Plug.Context do
   @moduledoc """
   `FootballResults.Plug.Context` Creates a context for GraphQL requests
+  https://hexdocs.pm/plug/readme.html#hello-world
 
-  The context should be small and have values related to the request. Values in 
+  The context should be small and have values related to the request. Values in
     the context must not be arguments for the API.
 
   The remote IP can be retreived from the proxy server. It can be used to authorize requests
     and harden token theft.
   """
+  alias Absinthe.Plug, as: AbsinthePlug
 
   @doc false
   def init(opts), do: opts
 
   @doc false
-  def call(conn, _opts), do: Absinthe.Plug.put_options(conn, context: context(conn))
+  def call(conn, _opts), do: AbsinthePlug.put_options(conn, context: context(conn))
 
   @doc "Create the context and assign values to the connection"
   def context(conn) do

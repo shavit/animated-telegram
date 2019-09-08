@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package proto;
+
+message Team {
+  int64 id = 1;
+  string name = 2;
+}
+
+message Standing {
+  Team team = 1;
+}
+
+message Season {
+  int32 id = 1;
+  repeated Standing standings = 2;
+}

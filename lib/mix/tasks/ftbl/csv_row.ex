@@ -3,28 +3,32 @@ defmodule Ftbl.CSVRow do
   `CSVRow` represents a row in the csv file
 
   This module was created to separate the data source from representation, and
-    to keep this task independent.. The column names were modified to match 
+    to keep this task independent.. The column names were modified to match
     with Elixir's naming convenstions.
 
-  An alternative option for this module is to use Ecto to cast the columns 
+  An alternative option for this module is to use Ecto to cast the columns
     from the source.
-    
+
   There is a missing feature to pass data from the stream into the API, but
     it will assume that the app is already running. In this implementation
     however, the app will load the data before it is ready to accept connections.
   """
+  import Map, only: [fetch!: 2]
+  import String, only: [to_integer: 1]
+
   @enforce_keys true
+
   @opaque t :: %__MODULE__{
             date: binary,
             division: binary,
             ftag: integer,
             fthg: integer,
-            ftr: integer,
+            ftr: binary,
             htag: integer,
             hthg: integer,
-            htr: integer,
+            htr: binary,
             id: integer,
-            season: binary,
+            season: integer,
             team_away: binary,
             team_home: binary
           }
@@ -32,37 +36,38 @@ defmodule Ftbl.CSVRow do
   defstruct [
     :id,
     :division,
-    :season,
     :date,
-    :team_home,
-    :team_away,
-    :fthg,
     :ftag,
+    :fthg,
     :ftr,
-    :hthg,
     :htag,
-    :htr
+    :hthg,
+    :htr,
+    :season,
+    :team_away,
+    :team_home
   ]
 
-  @keys_by_index %{
-    0 => :id,
-    1 => :division,
-    2 => :season,
-    3 => :date,
-    4 => :team_home,
-    5 => :team_away,
-    6 => :fthg,
-    7 => :ftag,
-    8 => :ftr,
-    9 => :hthg,
-    10 => :htag,
-    11 => :htr
-  }
+  @docs """
+  Create a new struct from a map
 
-  @doc """
-  Get the atom key for an index
+  It will map values to our atoms, and throw an error if the source
+    has invalid date
   """
-  def key_for_index(index) when is_integer(index) do
-    Map.get(@keys_by_index, index)
+  def from_csv_row(%{"id" => id} = m) when byte_size(id) > 0 do
+    Kernel.struct(__MODULE__, %{
+      id: m |> fetch!("id") |> to_integer,
+      division: m |> fetch!("Div"),
+      season: m |> fetch!("Season") |> to_integer,
+      date: m |> fetch!("Date"),
+      team_home: m |> fetch!("HomeTeam"),
+      team_away: m |> fetch!("AwayTeam"),
+      fthg: m |> fetch!("FTHG") |> to_integer,
+      ftag: m |> fetch!("FTAG") |> to_integer,
+      ftr: m |> fetch!("FTR"),
+      hthg: m |> fetch!("HTHG") |> to_integer,
+      htag: m |> fetch!("HTAG") |> to_integer,
+      htr: m |> fetch!("HTR")
+    })
   end
 end

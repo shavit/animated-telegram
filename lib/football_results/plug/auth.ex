@@ -1,17 +1,28 @@
 defmodule FootballResults.Plug.Auth do
+  @moduledoc """
+  `FootballResults.Plug.Auth` Authenticates requests
+  https://hexdocs.pm/plug/readme.html#hello-world
+  """
   import Plug.Conn
+  import FootballResults.Guardian, only: [decode_and_verify: 1]
 
   # Phoenix uses pipes for its router. Here there are
   #   only 2 routes that are whitelisted for authentication
   # The other routes must stay open for authentication
   #   and other usages.
-  @need_authentication ~w(/graphql graphiql)
+  @need_authentication ~w(/graphql /graphiql)
 
   @doc false
   def init(opts), do: opts
 
   @doc false
-  def call(conn, _opts), do: conn
+  def call(conn, _opts) do
+    if Enum.member?(@need_authentication, conn.request_path) do
+      authenticate(conn)
+    else
+      conn
+    end
+  end
 
   @doc """
   authenticate/1 authenticates the connection with a bearer token
@@ -32,8 +43,8 @@ defmodule FootballResults.Plug.Auth do
   end
 
   defp validate_jwt(conn, token) do
-    case FootballResults.Guardian.decode_and_verify(token) do
-      {:ok, _claims} -> conn
+    case decode_and_verify(token) do
+      {:ok, %{"aud" => "results.football.service"}} -> conn
       _ -> unauthorized(conn)
     end
   end
