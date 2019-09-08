@@ -9,6 +9,11 @@ defmodule FootballResults.Schema do
   alias FootballResults.Schema.Resolver
 
   query do
+    @desc "Get a team list"
+    field :teams, list_of(:team) do
+      resolve(&Resolver.get_team/3)
+    end
+
     @desc "Get a team"
     field :team, :team do
       arg(:name, :string, description: "The name of the team")

@@ -1,6 +1,9 @@
 defmodule FootballResults.RepoServer do
   @moduledoc """
   `FootballResults.RepoServer` Is a supervisor for the repository
+
+  Ideally it would start other table processes that will pass their table
+    to the supervisor on error.
   """
   use GenServer
   require Logger
@@ -14,8 +17,23 @@ defmodule FootballResults.RepoServer do
   end
 
   @doc false
-  def init(opts) when is_tuple(opts),
-    do: {:ok, %{csv_filepath: elem(opts, 0)}, {:continue, :init_db}}
+  def init(opts) when is_tuple(opts) do
+    {:ok, %{csv_filepath: elem(opts, 0)}, {:continue, :init_db}}
+  end
+
+  @doc """
+  match/2 calls a match/2 on the ets table
+  """
+  def match(table, args) do
+    GenServer.call(:repo_server, {:match, table, args})
+  end
+
+  @doc """
+  lookup/2 calls a lookup/2 on the ets table
+  """
+  def lookup(table, args) do
+    GenServer.call(:repo_server, {:lookup, table, args})
+  end
 
   @doc """
   handle_continue/2 is a callback that runs before the server
@@ -23,6 +41,8 @@ defmodule FootballResults.RepoServer do
     are making requests to access the data.
   """
   def handle_continue(:init_db, state) do
+    :ets.new(:teams, [:set, :private, :named_table])
+    :ets.new(:results, [:set, :private, :named_table])
     ref = :ets.new(@table_name, [:set, :private])
 
     ["path", state.csv_filepath]
@@ -43,15 +63,33 @@ defmodule FootballResults.RepoServer do
     |> :ets.match({{:results, :"$1"}, :"$2"})
     |> Enum.each(fn [_id, row] ->
       :ets.insert_new(
-        ref,
-        {{:teams, row.team_away}, %{name: row.team_away, division: row.division}}
+        :teams,
+        {String.downcase(row.team_away),
+         %{
+           name: row.team_away,
+           division: row.division
+         }}
       )
 
       :ets.insert_new(
-        ref,
-        {{:teams, row.team_home}, %{name: row.team_home, division: row.division}}
+        :teams,
+        {String.downcase(row.team_home),
+         %{
+           name: row.team_home,
+           division: row.division
+         }}
       )
     end)
+  end
+
+  @doc false
+  def handle_call({:match, table, args}, _ref, state) do
+    {:reply, :ets.match(table, args), state}
+  end
+
+  @doc false
+  def handle_call({:lookup, table, args}, _ref, state) do
+    {:reply, :ets.lookup(table, args), state}
   end
 
   @doc false

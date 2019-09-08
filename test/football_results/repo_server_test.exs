@@ -11,4 +11,14 @@ defmodule FootballResults.RepoServerTest do
     filepath = "tmp/data.csv"
     assert {:ok, %{csv_filepath: ^filepath}, {:continue, :init_db}} = RepoServer.init({filepath})
   end
+
+  test "match/2 makes a match call on the GenServer" do
+    assert [] = RepoServer.match(:results, {})
+    assert [] = RepoServer.match(:results, :some_key)
+  end
+
+  test "lookup/2 makes a lookup call on the GenServer" do
+    assert [] = RepoServer.lookup(:results, {})
+    assert [] = RepoServer.lookup(:results, :some_key)
+  end
 end

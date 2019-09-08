@@ -3,8 +3,13 @@ defmodule FootballResults.Schema.ResolverTest do
   doctest FootballResults.Schema.Resolver
   alias FootballResults.Schema.Resolver
 
+  test "teams/3 returns a team list" do
+    assert {:ok, [team | _teams]} = Resolver.get_teams(nil, %{}, %{})
+    assert %{division: _, name: _} = team
+  end
+
   test "team/3 returns a team" do
-    assert {:error, [message: "Not implemented", details: "The schema is empty"]} =
-             Resolver.get_team(nil, %{}, %{})
+    assert {:ok, team} = Resolver.get_team(nil, %{}, %{})
+    assert %{division: _, name: _} = team
   end
 end
