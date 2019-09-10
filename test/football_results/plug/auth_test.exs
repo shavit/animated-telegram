@@ -23,16 +23,20 @@ defmodule FootballResults.Plug.AuthTest do
     assert %{state: :unset, status: nil} = Auth.call(conn, %{})
 
     conn = conn(:post, "/graphql", "")
-    assert %{state: :sent, status: 401} = Auth.call(conn, %{})
+    assert %{state: :sent, status: 403} = Auth.call(conn, %{})
 
     conn = conn(:post, "/graphiql", "")
-    assert %{state: :sent, status: 401} = Auth.call(conn, %{})
+    assert %{state: :sent, status: 403} = Auth.call(conn, %{})
   end
 
   test "authenticate/1 check for bearer token" do
     conn = conn(:post, "/graphql", "") |> put_req_header("authorization", "")
-    assert %{state: :sent, status: 401} = Auth.authenticate(conn)
+    assert %{state: :sent, status: 403} = Auth.authenticate(conn)
+    conn = conn(:post, "/grapihql", "") |> put_req_header("authorization", "")
+    assert %{state: :sent, status: 403} = Auth.authenticate(conn)
     conn = conn(:post, "/graphql", "") |> put_req_header("authorization", "Bearer ")
+    assert %{state: :sent, status: 401} = Auth.authenticate(conn)
+    conn = conn(:post, "/graphiql", "") |> put_req_header("authorization", "Bearer ")
     assert %{state: :sent, status: 401} = Auth.authenticate(conn)
 
     assert {:ok, token, _claims} = encode_and_sign(%{id: 1}, %{}, ttl: {1, :hour})

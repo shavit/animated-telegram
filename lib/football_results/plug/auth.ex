@@ -10,6 +10,13 @@ defmodule FootballResults.Plug.Auth do
   #   only 2 routes that are whitelisted for authentication
   # The other routes must stay open for authentication
   #   and other usages.
+  #
+  # The route to /graphiql could have been open without authentication,
+  #   and perhaps authorize requests on the resolver level. However,
+  #   some points might need the user context for data collection,
+  #   rate limiting etc. that are not included in this app, but
+  #   might needed later on.
+  #
   @need_authentication ~w(/graphql /graphiql)
 
   @doc false
@@ -34,8 +41,12 @@ defmodule FootballResults.Plug.Auth do
   def authenticate(conn) do
     case get_req_header(conn, "authorization") do
       ["Bearer " <> token] -> validate_jwt(conn, token)
-      _ -> unauthorized(conn)
+      _ -> forbidden(conn)
     end
+  end
+
+  defp forbidden(conn) do
+    conn |> send_resp(:forbidden, "Forbidden") |> halt()
   end
 
   defp unauthorized(conn) do

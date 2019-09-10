@@ -79,7 +79,7 @@ defmodule FootballResults.Plug do
   post "/auth/new" do
     case read_body_params(conn, ["username", "password", "email"]) do
       {:ok, %{"username" => _, "password" => _, "email" => _} = user_params} ->
-        # TODO: Insert the user and read the ID from a database
+        # Insert the user and read the ID from a database
         user = Map.put(user_params, :id, 1)
         sign_user(conn, user)
 
@@ -94,7 +94,7 @@ defmodule FootballResults.Plug do
       {:ok, %{"access_token" => access_token, "refresh_token" => _refresh_token}} ->
         case peek(access_token) do
           %{claims: %{}, headers: %{"typ" => "JWT"}} ->
-            # TODO: Get the user from the database and validate the
+            # Get the user from the database and validate the
             #   refresh token
             sign_user(conn, %{id: 1})
 
@@ -111,7 +111,7 @@ defmodule FootballResults.Plug do
   post "/auth" do
     case read_body_params(conn, ["username", "password"]) do
       {:ok, %{"username" => username, "password" => password} = user} ->
-        # TODO: Read the ID from a database
+        # Read the ID from a database
         case Enum.filter(@demo_users, fn {a, b} -> a == username && b == password end) do
           [demo_user] when is_tuple(demo_user) ->
             user = Map.put(user, :id, 1)
@@ -172,7 +172,7 @@ defmodule FootballResults.Plug do
   end
 
   defp sign_user(conn, user) do
-    # TODO: Save the refresh token if needed
+    # Save the refresh token if needed
     refresh_token = generate_refresh_token()
 
     case encode_and_sign(user, %{}, ttl: {1, :hour}) do

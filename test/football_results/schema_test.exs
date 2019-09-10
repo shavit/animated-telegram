@@ -4,11 +4,87 @@ defmodule FootballResults.SchemaTest do
   import FootballResults.Support.Http
   import FootballResults.Guardian, only: [encode_and_sign: 3]
 
+  test "should query seasons in the schema" do
+    query = """
+      query {
+        seasons {
+          edges {
+            name
+            results {
+              season
+              date
+              id
+              awayTeam {
+                name
+              }
+              homeTeam {
+                name
+              }
+            }
+          }
+        }
+      }
+    """
+
+    assert {:error, 'Unauthorized'} = gql_request("invalid token", query)
+    assert {:ok, token, _claims} = encode_and_sign(%{id: 1}, %{}, ttl: {1, :hour})
+    assert {:ok, data} = gql_request(token, query)
+    assert '{"data":{"seasons":{"edges":' = Enum.take(data, 28)
+  end
+
+  test "should query meetings in the schema" do
+    query = """
+      query {
+        meetings(division: "SP1") {
+          edges {
+            id
+          }
+        }
+      }
+    """
+
+    assert {:error, 'Unauthorized'} = gql_request("invalid token", query)
+    assert {:ok, token, _claims} = encode_and_sign(%{id: 1}, %{}, ttl: {1, :hour})
+    assert {:ok, data} = gql_request(token, query)
+    assert '{"data":{"meetings":{"edges":' = Enum.take(data, 29)
+  end
+
+  test "should query a meeting in the schema" do
+    query = """
+      query {
+        meeting(id: "201516-381") {
+          id
+          season
+          division
+          homeTeam {
+            fullTimeGoals
+            halfTimeGoals
+            name
+          }
+          awayTeam {
+            fullTimeGoals
+            halfTimeGoals
+            name
+          }
+          ftr
+          htr
+        }
+      }
+    """
+
+    assert {:error, 'Unauthorized'} = gql_request("invalid token", query)
+    assert {:ok, token, _claims} = encode_and_sign(%{id: 1}, %{}, ttl: {1, :hour})
+    assert {:ok, data} = gql_request(token, query)
+    assert '{"data":{"meeting"' = Enum.take(data, 18)
+  end
+
   test "should query teams in the schema" do
     query = """
       query {
         teams {
-          name
+          edges {
+            name
+          }
         }
       }
     """
@@ -22,8 +98,10 @@ defmodule FootballResults.SchemaTest do
   test "should query team in the schema" do
     query = """
       query {
-        team(name: "celta") {
+        team(id: "celta") {
+          id
           name
+          division
         }
       }
     """
