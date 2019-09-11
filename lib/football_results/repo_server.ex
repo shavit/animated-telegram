@@ -251,7 +251,13 @@ defmodule FootballResults.RepoServer do
 
   @doc false
   def handle_call({:match, table, {match, cursor_opts, limit}}, _ref, state) do
-    res = table |> :ets.match(match) |> sort_by_cursor(cursor_opts, limit)
+    res =
+      try do
+        table |> :ets.match(match) |> sort_by_cursor(cursor_opts, limit)
+      rescue
+        _e in ArgumentError -> []
+      end
+
     {:reply, res, state}
   end
 
