@@ -20,14 +20,14 @@ defmodule FootballResults.Plug.Auth do
   import Plug.Conn
   import FootballResults.Guardian, only: [decode_and_verify: 1]
 
-  @need_authentication ~w(/graphql /graphiql)
+  @need_authentication ~w(/graphql)
 
   @doc false
   def init(opts), do: opts
 
   @doc false
-  def call(%{method: method, request_path: path} = conn, _opts) do
-    if Enum.member?(@need_authentication, path) && method != "GET" do
+  def call(%{request_path: path} = conn, _opts) do
+    if Enum.member?(@need_authentication, path) do
       authenticate(conn)
     else
       conn
