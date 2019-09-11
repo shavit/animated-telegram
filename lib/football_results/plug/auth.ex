@@ -2,29 +2,32 @@ defmodule FootballResults.Plug.Auth do
   @moduledoc """
   `FootballResults.Plug.Auth` Authenticates requests
   https://hexdocs.pm/plug/readme.html#hello-world
+
+  Phoenix uses pipes for its router. For this app we only need
+    to authenticate 2 HTTP endpoints. If we were using for example
+    a REST APIs, we would create a router with different pipelines.
+
+  The other routes must stay open for authentication
+    and other usages. We are not serving any **API point** with GET.
+
+  The route to /graphiql could have been open without authentication,
+    and perhaps authorize requests on the resolver level. However,
+    some points might need the user context for data collection,
+    rate limiting etc. that are not included in this app, but
+    might needed later on.
+
   """
   import Plug.Conn
   import FootballResults.Guardian, only: [decode_and_verify: 1]
 
-  # Phoenix uses pipes for its router. Here there are
-  #   only 2 routes that are whitelisted for authentication
-  # The other routes must stay open for authentication
-  #   and other usages.
-  #
-  # The route to /graphiql could have been open without authentication,
-  #   and perhaps authorize requests on the resolver level. However,
-  #   some points might need the user context for data collection,
-  #   rate limiting etc. that are not included in this app, but
-  #   might needed later on.
-  #
   @need_authentication ~w(/graphql /graphiql)
 
   @doc false
   def init(opts), do: opts
 
   @doc false
-  def call(conn, _opts) do
-    if Enum.member?(@need_authentication, conn.request_path) do
+  def call(%{method: method, request_path: path} = conn, _opts) do
+    if Enum.member?(@need_authentication, path) && method != "GET" do
       authenticate(conn)
     else
       conn

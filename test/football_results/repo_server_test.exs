@@ -12,6 +12,12 @@ defmodule FootballResults.RepoServerTest do
     assert {:ok, %{csv_filepath: ^filepath}, {:continue, :init_db}} = RepoServer.init({filepath})
   end
 
+  test "code_change/3 reloads the process with the previous csv filepath" do
+    filepath = "tmp/data.csv"
+    {:ok, old_state, _continue} = RepoServer.init({filepath})
+    assert {:ok, %{csv_filepath: ^filepath}} = RepoServer.code_change(RepoServer, old_state, %{})
+  end
+
   test "match/3 makes a match call on the GenServer" do
     assert [] = RepoServer.match(:meetings, {}, %{})
     assert [] = RepoServer.match(:meetings, :some_key, %{})

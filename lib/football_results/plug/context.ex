@@ -17,7 +17,9 @@ defmodule FootballResults.Plug.Context do
   @doc false
   def call(conn, _opts), do: AbsinthePlug.put_options(conn, context: context(conn))
 
-  @doc "Create the context and assign values to the connection"
+  @doc """
+  Create the context and assign values to the connection
+  """
   def context(conn) do
     conn
     |> Map.get(:assigns)

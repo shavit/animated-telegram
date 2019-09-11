@@ -9,7 +9,7 @@ defmodule FootballResultsTest do
       |> Supervisor.which_children()
       |> Enum.map(fn {m, _pid, _name, _opts} -> m end)
 
-    assert 2 == Enum.count(children)
+    assert 3 == Enum.count(children)
 
     # Monitor one child process
     pid = Process.whereis(:repo_server)

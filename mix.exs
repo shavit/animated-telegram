@@ -29,7 +29,7 @@ defmodule FootballResults.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :grpc],
       # mod is the application callback module
       mod: {FootballResults, [FootballResults.Supervisor]}
     ]
@@ -43,18 +43,19 @@ defmodule FootballResults.MixProject do
     [
       {:absinthe, "~> 1.4.0"},
       {:absinthe_plug, "~> 1.4.0"},
-      # There is issue with elixir-grpc and cowboy
+      # There is an issue with elixir-grpc and cowboy
+      # https://github.com/elixir-grpc/grpc/issues?utf8=✓&q=is%3Aissue+is%3Aopen+cowboy
       # {:cowboy, "~> 2.6.3", override: true},
       {:cowboy, github: "elixir-grpc/cowboy", tag: "grpc-2.6.3", override: true},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:dataloader, "~> 1.0.0"},
       {:google_protos, "~> 0.1"},
       {:guardian, "~> 1.2"},
+      {:grpc, github: "elixir-grpc/grpc"},
       {:jason, "~> 1.1.0"},
       {:plug, "~> 1.8.3"},
       {:plug_cowboy, "~> 2.0"},
-      {:poison, "~> 2.1.0"},
-      {:protobuf, "~> 0.5.3"}
+      {:poison, "~> 2.1.0"}
     ]
   end
 end

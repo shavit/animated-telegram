@@ -3,7 +3,10 @@ defmodule FootballResults.RepoServer do
   `FootballResults.RepoServer` Is a supervisor for the repository
 
   Ideally it would start other table processes that will share their table
-    using the supervisor on error, before termination.
+    using the supervisor on error, before termination. If this GenServer does
+    not supervise other process, then the calls to the :ets table can be
+    done directly with `:public` access.
+
   """
   use GenServer
   require Logger
@@ -37,9 +40,13 @@ defmodule FootballResults.RepoServer do
 
   """
   def handle_continue(:init_db, state) do
+    # Although `:private` is not recommended, it is good for us
+    # The process must start before we create the tables, so
+    #   keep this here.
     ref = :ets.new(@table_name, [:set, :private])
     :ets.new(:meetings, [:ordered_set, :private, :named_table])
     :ets.new(:teams, [:set, :private, :named_table])
+    :ets.new(:search_terms, [:set, :private, :named_table])
 
     ["path", state.csv_filepath]
     |> FtblLoad.run()
@@ -49,6 +56,10 @@ defmodule FootballResults.RepoServer do
 
     create_meetings(ref)
     create_teams(ref)
+    create_search_index(ref)
+
+    # We can destroy the `@table_name` here
+    # ...
 
     {:noreply, Map.put(state, :db_ref, ref)}
   end
@@ -88,6 +99,25 @@ defmodule FootballResults.RepoServer do
         :meetings,
         {meeting.id, {row.season, row.division, meeting.season}, meeting}
       )
+    end)
+  end
+
+  defp create_search_index(ref) when not is_nil(ref) do
+    :ets.match(:meetings, {:_, :_, :"$1"})
+    |> Enum.map(fn [item] ->
+      team_away = String.downcase(item.team_away.name)
+      team_home = String.downcase(item.team_away.name)
+
+      [
+        %{id: item.id, type: :meeting, term: item.date, name: "Results " <> item.date},
+        %{id: team_away, type: :team, term: team_away, name: item.team_away.name},
+        %{id: team_home, type: :team, term: team_home, name: item.team_home.name}
+      ]
+    end)
+    |> List.flatten()
+    |> Enum.uniq()
+    |> Enum.each(fn item ->
+      :ets.insert(:search_terms, {item.term, {item.id, item.type}, item.name})
     end)
   end
 
@@ -246,11 +276,18 @@ defmodule FootballResults.RepoServer do
   end
 
   @doc false
+  def code_change(_old_module, %{csv_filepath: filepath}, _extra) do
+    Logger.info("[RepoServer] Code changed")
+    {:ok, state, _then_what} = init({filepath})
+    {:ok, state}
+  end
+
+  @doc false
   def handle_info({:DOWN, _ref, :process, _pid, reason}, state) do
     Logger.info("[RepoServer] Shutdown: #{reason}")
     :ets.delete(state.db_ref)
 
-    # Chain-delete other properties here
+    # Chain-delete other properties here, then remove the reference
     state = Map.delete(state, :db_ref)
 
     {:noreply, state}

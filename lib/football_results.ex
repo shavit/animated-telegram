@@ -18,6 +18,7 @@ defmodule FootballResults do
 
     children = [
       supervisor(RepoServer, [{"tmp/data.csv"}], restart: :permanent),
+      supervisor(GRPC.Server.Supervisor, [{FootballResults.Protobuf, 4001}]),
       # You can use a configuration for the port
       # Since this app is isolated, there is no problem
       #  to have it static

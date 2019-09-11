@@ -16,6 +16,7 @@ defmodule FootballResults.Model do
   def get_seasons(args \\ %{}) when is_map(args) do
     division = Map.get(args, :division, :_)
     season = Map.get(args, :season, :_)
+    args = sanitize_request_args(args)
 
     RepoServer.match(:meetings, {:_, {:_, division, season}, :"$1"}, args)
     |> Enum.sort()
@@ -43,6 +44,7 @@ defmodule FootballResults.Model do
   Return a list of meetings with results
   """
   def get_meetings(args \\ %{}) when is_map(args) do
+    args = sanitize_request_args(args)
     division = Map.get(args, :division, :_)
     season = Map.get(args, :season, :_)
     RepoServer.match(:meetings, {:_, {:_, division, season}, :"$1"}, args)
@@ -61,7 +63,18 @@ defmodule FootballResults.Model do
   Return a list of teams
   """
   def get_teams(args \\ %{}) when is_map(args) do
-    RepoServer.match(:teams, {:_, :_, :"$1"}, args) |> List.flatten()
+    args = sanitize_request_args(args)
+    RepoServer.match(:teams, {:_, :_, :"$1"}, args) |> map_take_team_meetings(4)
+  end
+
+  defp map_take_team_meetings(results, limit) do
+    results
+    |> List.flatten()
+    |> Enum.map(fn team ->
+      Map.update(team, :meetings, [], fn x ->
+        x |> Enum.sort() |> Enum.take(limit)
+      end)
+    end)
   end
 
   @doc """
@@ -69,5 +82,15 @@ defmodule FootballResults.Model do
   """
   def get_team(%{id: key}) do
     RepoServer.lookup_item(:teams, key)
+  end
+
+  defp sanitize_request_args(args) when is_map(args) do
+    args
+    |> Enum.filter(fn {_k, v} -> !Enum.member?([nil, "", 0], v) end)
+    |> Enum.into(%{})
+  end
+
+  defp sanitize_request_args(%_{} = args) do
+    args |> Map.from_struct() |> sanitize_request_args
   end
 end

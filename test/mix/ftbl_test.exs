@@ -1,6 +1,7 @@
-defmodule Mix.Tasks.Ftbl.LoadTest do
+defmodule Mix.Tasks.FtblTest do
   use ExUnit.Case
   doctest Mix.Tasks.Ftbl
+  doctest Mix.Tasks.Ftbl.Load
   alias Mix.Tasks.Ftbl.Load
 
   @csv_head ~w(id Div Season Date HomeTeam AwayTeam FTHG FTAG FTR HTHG HTAG HTR)

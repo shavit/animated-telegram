@@ -2,6 +2,9 @@ defmodule FootballResults.Schema do
   @moduledoc """
   `FootballResults.Schema` Schema for GraphQL
   https://hexdocs.pm/absinthe/our-first-query.html#content
+
+  When the schema grows, it can be breaked down to several files
+    and imported here.
   """
   use Absinthe.Schema
   import_types(FootballResults.Schema.Types)
@@ -11,7 +14,7 @@ defmodule FootballResults.Schema do
   query do
     @desc "List season results"
     field :seasons, :seasons do
-      arg(:after, :string, description: "Optional cursor")
+      arg(:next, :string, description: "Optional cursor")
       arg(:limit, :integer, description: "Limit the number of results. 0 returns 25")
       resolve(&Resolver.get_seasons/3)
     end
@@ -20,6 +23,7 @@ defmodule FootballResults.Schema do
     field :meetings, :meeting_results do
       arg(:division, :string, description: "The division name")
       arg(:season, :string, description: "the season name. Ex. 2011-2012")
+      arg(:next, :string, description: "Optional cursor")
       arg(:limit, :integer, description: "Limit the number of results. 0 returns 25")
       resolve(&Resolver.get_meetings/3)
     end
@@ -32,6 +36,8 @@ defmodule FootballResults.Schema do
 
     @desc "Get a team list"
     field :teams, :teams do
+      arg(:next, :string, description: "Optional cursor")
+      arg(:limit, :integer, description: "Limit the number of results. 0 returns 25")
       resolve(&Resolver.get_teams/3)
     end
 

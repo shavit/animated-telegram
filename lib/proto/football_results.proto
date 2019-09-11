@@ -1,17 +1,101 @@
 syntax = "proto3";
-
+//
+//  The messages are differ from the GraphQL schema, since the cilent
+//    will consume it differently.
+//
 package proto;
 
+
+//
+// Messages
+//
+
 message Team {
-  int64 id = 1;
+  string id = 1;
   string name = 2;
+  string division = 3;
+  int32 loses = 4;
+  int32 wins = 5;
+  repeated Meeting meetings = 6;
 }
 
-message Standing {
-  Team team = 1;
+message Meeting {
+  string id = 1;
+  int64 date = 2;
+  string season = 3;
+  string division = 4;
+  string ftr = 5;
+  string htr = 6;
+  TeamGoals awayTeam = 7;
+  TeamGoals homeTeam = 8;
 }
 
 message Season {
   int32 id = 1;
-  repeated Standing standings = 2;
+  string name = 2;
+  string division = 3;
+  repeated Meeting meetings = 4;
+}
+
+message TeamGoals {
+  string name = 1;
+  int32 halfTimeGoals = 2;
+  int32 fullTimeGoals = 3;
+}
+
+enum ResultType {
+  AWAY = 0;
+  DRAW = 1;
+  HOME = 2;
+}
+
+//
+// Requests
+//
+
+message SeasonsRequest {
+  string next = 1;
+  int32 limit = 2;
+}
+
+message MeetingsRequest {
+  string next = 1;
+  int32 limit = 2;
+  string division = 3;
+  string season = 4;
+}
+
+message MeetingRequest {
+  string id = 1;
+}
+
+message TeamsRequest {
+  string next = 1;
+  int32 limit = 2;
+}
+
+message TeamRequest {
+  string id = 1;
+}
+
+//
+// Services
+//
+
+service ResultsService {
+  // getSeasons(SeasonsRequest) returns a stream of season
+  rpc getSeasons(SeasonsRequest) returns(stream Season) {}
+
+  // getMeetings(MeetingsRequest) returns meeting results
+  // You can filter them by a season and a division
+  rpc getMeetings(MeetingsRequest) returns(stream Meeting) {}
+
+  // getMeeting(MeetingRequest) returns a meeting
+  rpc getMeeting(MeetingRequest) returns(Meeting) {}
+
+  // getTeams(TeamsRequest) returns teams
+  rpc getTeams(TeamsRequest) returns(stream Team) {}
+
+  // getTeam(TeamRequest) returns a team
+  rpc getTeam(TeamRequest) returns(Team) {}
 }
