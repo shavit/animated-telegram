@@ -55,6 +55,24 @@ $ mix run --no-halt
 The public HTTP server and load balancer is HAProxy. You do not need to
   run it for development, except for its configuration.
 
+It will resolve addresses and bypass Docker. If you would like to run it
+  without Docker, you will need to edit the hostnames of the services
+  in the `deployment/haproxy.cfg` file. A public or private domain name
+  as a container name will do.
+
+There is a docker-compose file that you can use to start the proxy and
+  app server. It will balance the traffic across 3 services, and it is
+  a good idea to start 4 services with one for backup, for higher
+  availability.
+
+```
+$ docker-compose -f deployment/docker-compose.yml build
+$ docker-compose -f deployment/docker-compose.yml up --scale api_server=4
+```
+
+![HAProxy demo](https://github.com/shavit/animated-telegram/blob/master/doc/haproxy.gif)
+
+
 ### App Server
 
 The app server uses Cowboy to serve HTTP requests, and it is being used
@@ -62,6 +80,8 @@ by Plug to connect between requests and modules in app.
 
 In simple words, the router is configured in `lib/football_results/plug.ex`,
   and the other files under `lib/football_results/plug/` are middleware.
+
+Before you start, make sure you have this file `res/data.csv`.
 
 #### GraphQL
 

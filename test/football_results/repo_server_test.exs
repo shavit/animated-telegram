@@ -8,12 +8,12 @@ defmodule FootballResults.RepoServerTest do
   end
 
   test "init/1 loads data" do
-    filepath = "tmp/data.csv"
+    filepath = Application.get_env(:football_results, :csv_filepath)
     assert {:ok, %{csv_filepath: ^filepath}, {:continue, :init_db}} = RepoServer.init({filepath})
   end
 
   test "code_change/3 reloads the process with the previous csv filepath" do
-    filepath = "tmp/data.csv"
+    filepath = Application.get_env(:football_results, :csv_filepath)
     {:ok, old_state, _continue} = RepoServer.init({filepath})
     assert {:ok, %{csv_filepath: ^filepath}} = RepoServer.code_change(RepoServer, old_state, %{})
   end

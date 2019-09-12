@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  haproxy:
+    build:
+      context: ..
+      dockerfile: ./deployment/Dockerfile.haproxy
+    depends_on:
+      - api_server
+    ports:
+      # Remove this line to disable access to stats
+      # Also remove the entry from deployment/haproxy.cfg
+      - 8088:8088
+      # You can change 8080 to 80
+      - 8080:4000
+      - 443:4000
+      - 4001:4001
+    # For development
+    #volumes:
+    #  - ${PWD}/deployment/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+
+  api_server:
+    build:
+      context: ..
+      dockerfile: ./deployment/Dockerfile

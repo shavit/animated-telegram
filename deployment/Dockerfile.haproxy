@@ -1,0 +1,4 @@
+FROM haproxy:1.7
+
+# Run this from the project base directory or change this path
+COPY ${PWD}/deployment/haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
