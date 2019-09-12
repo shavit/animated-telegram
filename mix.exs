@@ -49,6 +49,7 @@ defmodule FootballResults.MixProject do
       {:cowboy, github: "elixir-grpc/cowboy", tag: "grpc-2.6.3", override: true},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:dataloader, "~> 1.0.0"},
+      {:distillery, "~> 2.0"},
       {:google_protos, "~> 0.1"},
       {:guardian, "~> 1.2"},
       {:grpc, github: "elixir-grpc/grpc"},
