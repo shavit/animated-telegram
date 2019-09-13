@@ -50,10 +50,11 @@ $ iex -S mix
 $ mix run --no-halt
 ```
 
-### HTTP Proxy Server
+### Load Balancer
 
-The public HTTP server and load balancer is HAProxy. You do not need to
-  run it for development, except for its configuration.
+The public server and load balancer is HAProxy, a server that works on
+  the application and trasport layers. You do not need to run it for
+  development, except for its configuration.
 
 It will resolve addresses and bypass Docker. If you would like to run it
   without Docker, you will need to edit the hostnames of the services
@@ -147,3 +148,37 @@ mix ftbl.load url https://example.com/data.csv
 
 A callback need to be implemented to send to results to the database. However,
   the app already use this function to load the file.
+
+## Documentation
+
+The documentation is not part of the source, but it can be generated.
+
+![Hex docs](https://github.com/shavit/animated-telegram/blob/master/doc/docs_hex.gif)
+
+### Generate Hex Docs
+
+```
+$ mix compile
+$ ex_doc FootballResults "0.1.0"  _build/dev/lib/football_results/ebin
+```
+
+### Generate API gRPC documentation
+
+Install [protoc-gen-doc from GitHub](https://github.com/pseudomuto/protoc-gen-doc)
+
+```
+$ go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
+```
+
+Then generate the gRPC documentation for this project
+
+```
+$ mkdir -p doc/proto
+$ protoc --doc_out=./doc/proto --doc_opt=html,index.html lib/proto/*.proto
+```
+
+### GraphQL IDE
+
+There is also interactive documentation on the schema tab at `/grapihql`
+
+![Graphiql](https://github.com/shavit/animated-telegram/blob/master/doc/docs_graphiql.gif)
