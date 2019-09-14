@@ -24,3 +24,5 @@ football_results-*.tar
 
 tmp
 res
+deployment/inventory
+deployment/.env

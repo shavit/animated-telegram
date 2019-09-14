@@ -29,7 +29,12 @@ defmodule FootballResults.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :grpc],
+      extra_applications: [
+        :logger,
+        :prometheus_ex,
+        :prometheus_process_collector,
+        :grpc
+      ],
       # mod is the application callback module
       mod: {FootballResults, [FootballResults.Supervisor]}
     ]
@@ -56,7 +61,10 @@ defmodule FootballResults.MixProject do
       {:jason, "~> 1.1.0"},
       {:plug, "~> 1.8.3"},
       {:plug_cowboy, "~> 2.0"},
-      {:poison, "~> 2.1.0"}
+      {:poison, "~> 2.1.0"},
+      {:prometheus_ex, "~> 3.0.5"},
+      {:prometheus_process_collector, "~> 1.4.5"},
+      {:telemetry, "~> 0.4.0"}
     ]
   end
 end
