@@ -7,7 +7,6 @@ ARG MIX_ENV=prod
 #  data from different location during runtime or build
 #ARG CSV_FILEPATH="res/data.csv"
 #COPY ${CSV_FILEPATH} data.csv
-#ENV CSV_FILEPATH=data.csv
 
 COPY ${PWD}/ .
 
