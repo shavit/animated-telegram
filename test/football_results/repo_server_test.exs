@@ -29,10 +29,10 @@ defmodule FootballResults.RepoServerTest do
   end
 
   test "lookup_item/3 makes a lookup_item call on the GenServer" do
-    assert %{id: "201516-381"} = RepoServer.lookup_item(:meetings, "201516-381")
+    assert %{id: "201617-1735"} = RepoServer.lookup_item(:meetings, "201617-1735")
     assert %{id: "201617-1"} = RepoServer.lookup_item(:meetings, "201617-1")
     assert %{name: "Osasuna"} = RepoServer.lookup_item(:teams, "osasuna")
-    assert %{name: "Alaves"} = RepoServer.lookup_item(:teams, "alaves")
+    assert %{name: "Ingolstadt"} = RepoServer.lookup_item(:teams, "ingolstadt")
   end
 
   test "new_cursor/1 creates a cursor for pagination from a string" do

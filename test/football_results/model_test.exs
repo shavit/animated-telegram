@@ -24,7 +24,7 @@ defmodule FootballResults.ModelTest do
   end
 
   test "get_meetings/1 return a list of meetings with results" do
-    args = %{season: "2015-2016", division: "SP1"}
+    args = %{season: "2015-2016", division: "SP2"}
     assert [meeting | _meetings] = Model.get_meetings(args)
     assert args.season == meeting.season
     assert args.division == meeting.division
@@ -39,11 +39,11 @@ defmodule FootballResults.ModelTest do
   end
 
   test "get_meeting/1 return one meeting with results" do
-    args = %{id: "201516-381"}
+    args = %{id: "201516-1676"}
     meeting = Model.get_meeting(args)
     assert "2015-2016" == meeting.season
-    assert "SP1" == meeting.division
-    assert meeting.id == "201516-381"
+    assert "SP2" == meeting.division
+    assert meeting.id == "201516-1676"
   end
 
   test "get_teams/1 returns a list of teams" do
@@ -55,9 +55,9 @@ defmodule FootballResults.ModelTest do
   end
 
   test "get_team/1 returns a team" do
-    assert %{division: "SP2", name: "Cordoba"} = Model.get_team(%{id: String.downcase("Cordoba")})
+    assert %{division: "E0", name: "Arsenal"} = Model.get_team(%{id: String.downcase("Arsenal")})
 
-    assert %{division: "D1", name: "Wolfsburg"} =
-             Model.get_team(%{id: String.downcase("Wolfsburg")})
+    assert %{division: "D1", name: "M'gladbach"} =
+             Model.get_team(%{id: String.downcase("M'gladbach")})
   end
 end

@@ -1,9 +1,6 @@
 language: elixir
-env:
-  - MIX_ENV=test
-  - CSV_FILEPATH=/tmp/custom-path-data.csv
 elixir:
   - 1.9.1
 script:
-  - cat >/tmp/custom-path-data.csv <<<"\n,Div,Season,Date,HomeTeam,AwayTeam,FTHG,FTAG,FTR,HTHG,HTAG,HTR1,SP1,201617,19/08/2016,La Coruna,Eibar,2,1,H,0,0,D\n2,SP1,201617,19/08/2016,Malaga,Osasuna,1,1,D,0,0,D\n2160,D1,201617,19/11/2016,M'gladbach,FC Koln,1,2,A,1,0,H\n887,SP2,201617,30/10/2016,Gimnastic,Mallorca,2,2,D,1,0,H\n2369,D1,201617,20/05/2017,Ingolstadt,Schalke 04,1,1,D,1,1,D\n920,SP2,201617,20/11/2016,Cadiz,Alcorcon,4,1,H,0,1,A\n1735,E0,201617,24/09/2016,Arsenal,Chelsea,3,0,H,3,0,H\n2133,D1,201617,22/10/2016,Ingolstadt,Dortmund,3,3,D,2,0,H\n"
+  - find test/support/fixture_data.csv
   - mix test --cover

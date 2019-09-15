@@ -19,14 +19,14 @@ defmodule FootballResults.Schema.ResolverTest do
   end
 
   test "get_meetings/3" do
-    args = %{season: "2015-2016", division: "SP1", limit: 4}
+    args = %{season: "2015-2016", division: "SP2", limit: 4}
 
     {:ok, %{pagination: %{next: cursor}, edges: [meeting | _teams] = meetings}} =
       Resolver.get_meetings(nil, args, %{})
 
     assert args.season == meeting.season
     assert args.division == meeting.division
-    assert 4 == Enum.count(meetings)
+    assert 2 == Enum.count(meetings)
     assert is_binary(cursor)
 
     Enum.each(meetings, fn x ->
@@ -40,7 +40,7 @@ defmodule FootballResults.Schema.ResolverTest do
   end
 
   test "get_meeting/3" do
-    args = %{id: "201516-384"}
+    args = %{id: "201617-2160"}
     {:ok, meeting} = Resolver.get_meeting(nil, args, %{})
     assert args.id == meeting.id
   end
@@ -77,10 +77,10 @@ defmodule FootballResults.Schema.ResolverTest do
   end
 
   test "team/3 returns a team" do
-    assert {:ok, team} = Resolver.get_team(nil, %{id: "Sunderland"}, %{})
-    assert %{division: _, name: "Sunderland"} = team
+    assert {:ok, team} = Resolver.get_team(nil, %{id: "Cadiz"}, %{})
+    assert %{division: _, name: "Cadiz"} = team
 
-    assert {:ok, team} = Resolver.get_team(nil, %{id: "Alaves"}, %{})
-    assert %{division: _, name: "Alaves"} = team
+    assert {:ok, team} = Resolver.get_team(nil, %{id: "Cadiz"}, %{})
+    assert %{division: _, name: "Cadiz"} = team
   end
 end
