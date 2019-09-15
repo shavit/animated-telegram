@@ -8,7 +8,7 @@ use Mix.Config
 config :football_results,
   http_port: System.get_env("HTTP_PORT", "4000") |> String.to_integer(),
   grpc_port: System.get_env("GRPC_PORT", "4001") |> String.to_integer(),
-  csv_filepath: System.get_env("CSV_FILEPPATH", "res/data.csv")
+  csv_filepath: System.get_env("CSV_FILEPATH", "priv/data.csv")
 
 config :football_results, FootballResults.Guardian,
   issuer: "results.football.service",

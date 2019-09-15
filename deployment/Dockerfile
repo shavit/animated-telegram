@@ -5,6 +5,7 @@ ARG MIX_ENV=prod
 
 # Uncomment these lines if you prefer to load the csv
 #  data from different location during runtime or build
+# Be aware that the release must include this path
 #ARG CSV_FILEPATH="res/data.csv"
 #COPY ${CSV_FILEPATH} data.csv
 
@@ -24,7 +25,7 @@ FROM elixir:1.9.1-alpine
 
 WORKDIR /srv/app
 COPY --from=builder /srv/app .
-COPY --from=builder /res/data.csv /srv/app/res/data.csv
+COPY --from=builder /priv ./priv/
 
 RUN apk update && apk upgrade --no-cache \
 	&& apk add \

@@ -12,7 +12,8 @@ Features:
 ## Requirements
 
 1. Elixir 1.9
-1. Docker
+2. Docker
+3. Data file `priv/data.csv`
 
 Make sure you have **Elixir 1.9** installed on your machine. Instructions are
   available [on the official website](https://elixir-lang.org/install.html)
@@ -36,6 +37,12 @@ $ docker-compose -v
 
 docker-compose version 1.23.2
 ```
+
+## Quick Start
+
+1. Download or clone the project
+2. Copy your `Data.csv` file to `priv/data.csv`
+3. Build and run with the instructions below.
 
 ## Development
 
