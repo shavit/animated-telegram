@@ -70,7 +70,7 @@ defmodule Mix.Tasks.Ftbl.Load do
     [id | cols_head] = columns = a |> String.trim() |> String.split(",")
     # The first row will have an empty ID
     if id == "" do
-      {["id" | cols_head], []}
+      {["id" | cols_head], rows}
     else
       # Parse the table body
       strct = cols |> Enum.zip(columns) |> Enum.into(%{}) |> from_csv_row

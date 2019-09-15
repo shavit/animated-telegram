@@ -25,7 +25,7 @@ FROM elixir:1.9.1-alpine
 
 WORKDIR /srv/app
 COPY --from=builder /srv/app .
-COPY --from=builder /priv ./priv/
+COPY --from=builder /priv /srv/app/priv
 
 RUN apk update && apk upgrade --no-cache \
 	&& apk add \
@@ -38,4 +38,3 @@ RUN apk update && apk upgrade --no-cache \
 # Comment these lines if you would like to debug the image
 ENTRYPOINT ["/srv/app/bin/football_results"]
 CMD ["foreground"]
-
