@@ -26,7 +26,7 @@ defmodule FootballResults.Schema.ResolverTest do
 
     assert args.season == meeting.season
     assert args.division == meeting.division
-    assert 2 == Enum.count(meetings)
+    assert 1 < Enum.count(meetings)
     assert is_binary(cursor)
 
     Enum.each(meetings, fn x ->

@@ -32,6 +32,7 @@ defmodule FootballResults.MixProject do
       extra_applications: [
         :logger,
         :prometheus_ex,
+        :prometheus_plugs,
         :prometheus_process_collector,
         :grpc
       ],
@@ -63,6 +64,7 @@ defmodule FootballResults.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:poison, "~> 2.1.0"},
       {:prometheus_ex, "~> 3.0.5"},
+      {:prometheus_plugs, "~> 1.1"},
       {:prometheus_process_collector, "~> 1.4.5"},
       {:telemetry, "~> 0.4.0"}
     ]
