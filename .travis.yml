@@ -1,6 +1,0 @@
-language: elixir
-elixir:
-  - 1.9.1
-script:
-  - find test/support/fixture_data.csv
-  - mix test --cover
