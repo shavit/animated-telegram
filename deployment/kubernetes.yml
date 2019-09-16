@@ -1,0 +1,95 @@
+---
+
+# Start the service before the pods, to have its hostname
+#   available in the port as environment variable
+#  $SERVICE_NAME_SERVICE_HOST:$SERVICE_NAME_SERVICE_PORT
+kind: Service
+apiVersion: v1
+metadata:
+  name: haproxy-service
+  labels:
+    environment: production
+    tier: frontend
+spec:
+  selector:
+    app: haproxy-service
+  ports:
+    # These ports can be used internallly
+    # There is only one exported port
+    - protocol: TCP
+      port: 4001
+      name: grpc
+    - protocol: TCP
+      name: https
+      port: 443
+      # Alternatively the pod can use a service
+      #   as a proxy for external services
+    - protocol: TCP
+      port: 4369
+      name: otp
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy-deployment
+  labels:
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haproxy-deployment
+  template:
+    metadata:
+      labels:
+        app: haproxy-deployment
+    spec:
+      containers:
+        # Configure the haproxy with a custom build, command or
+        #  mount a file
+        - name: haproxy-deployment
+          image: haproxy:2.0.5
+          ports:
+            - containerPort: 8000
+            - containerPort: 4001
+            - containerPort: 4369
+
+        - name: haproxy-deployment-exporter
+          image: prom/haproxy-exporter
+          args: ["--haproxy.scrape-uri", "http://$HAPROXY_SERVICE_SERVICE_HOST:$HAPROXY_PORT_SERVICE_PORT/haproxy?stats;csv"]
+          ports:
+            - containerPort: 9101
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+  labels:
+    environment: production
+    app: api-endpoint
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-endpoint
+  template:
+    metadata:
+      labels:
+        app: api-endpoint
+    spec:
+      containers:
+        # You need to use a registry
+        - image: football-results:0.1.0
+          imagePullPolicy: Always
+          name: football-results
+          ports:
+            - containerPort: 4369
+              protocol: TCP
+            - containerPort: 4001
+              protocol: TCP
+            - containerPort: 4000
+              protocol: TCP
