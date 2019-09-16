@@ -12,7 +12,8 @@ Features:
 ## Requirements
 
 1. Elixir 1.9
-1. Docker
+2. Docker
+3. Data file `priv/data.csv`
 
 Make sure you have **Elixir 1.9** installed on your machine. Instructions are
   available [on the official website](https://elixir-lang.org/install.html)
@@ -36,6 +37,12 @@ $ docker-compose -v
 
 docker-compose version 1.23.2
 ```
+
+## Quick Start
+
+1. Download or clone the project
+2. Copy your `Data.csv` file to `priv/data.csv`
+3. Build and run with the instructions below.
 
 ## Development
 
@@ -94,11 +101,12 @@ Read more about [Absinthe on Github](https://github.com/absinthe-graphql/absinth
 #### GraphiQL
 
 There is also a web interface to consume data from the GraphQL API, to read
-  documentation about the different types, and export queries.
-
-It is available on `/graphiql`.
+  documentation about the different types, and export queries. It is
+  available on `/graphiql`.
 
 Read more about [GraphiQL on Github](https://github.com/graphql/graphiql)
+
+You can also generate documentation with [graphdoc](https://github.com/2fd/graphdoc)
 
 ### gRPC
 
@@ -107,7 +115,7 @@ This project also uses protocol buffers to consume the API. The files
 
 To generate the `pb.ex` files run:
 ```
-protoc --elixir_out=plugins=grpc:. ./lib/proto/*.proto
+$ protoc --elixir_out=plugins=grpc:. ./lib/proto/*.proto
 ```
 
 To learn about how to install install `protoc` and its plugins, go to the
@@ -121,7 +129,7 @@ Before you use the app, make sure to test it. Ideally it will be deployed
 
 Run tests using mix
 ```
-mix test --cover
+$ mix test --cover
 ```
 
 ## Deployment
@@ -137,13 +145,13 @@ A `ftbl` is a helper to parse the `data.csv` file with the football results.
 
 Use the help to find the available commands
 ```
-mix help ftbl.load
+$ mix help ftbl.load
 ```
 
 Load the data from a csv file or URL
 ```
-mix ftbl.load path file_path.csv
-mix ftbl.load url https://example.com/data.csv
+$ mix ftbl.load path file_path.csv
+$ mix ftbl.load url https://example.com/data.csv
 ```
 
 A callback need to be implemented to send to results to the database. However,

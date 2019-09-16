@@ -39,6 +39,8 @@ defmodule FootballResults.Plug do
 
   # The order of the plugs is important
   plug(:match)
+  plug(FootballResults.Plug.Instrumenter)
+  plug(FootballResults.Plug.Exporter)
   # Auth, context and parser must be in this order
   plug(FootballResults.Plug.Auth)
   plug(FootballResults.Plug.Context)
@@ -81,9 +83,11 @@ defmodule FootballResults.Plug do
       {:ok, %{"username" => _, "password" => _, "email" => _} = user_params} ->
         # Insert the user and read the ID from a database
         user = Map.put(user_params, :id, 1)
+        :telemetry.execute([:auth, :signup, :success], conn)
         sign_user(conn, user)
 
       _ ->
+        :telemetry.execute([:auth, :signup, :bad_request], conn)
         conn |> send_resp(400, "bad request") |> halt
     end
   end
@@ -94,15 +98,18 @@ defmodule FootballResults.Plug do
       {:ok, %{"access_token" => access_token, "refresh_token" => _refresh_token}} ->
         case peek(access_token) do
           %{claims: %{}, headers: %{"typ" => "JWT"}} ->
+            :telemetry.execute([:auth, :refresh, :success], conn)
             # Get the user from the database and validate the
             #   refresh token
             sign_user(conn, %{id: 1})
 
           _ ->
+            :telemetry.execute([:auth, :refresh, :unauthorized], conn)
             conn |> send_resp(401, "unauthorized") |> halt
         end
 
       _ ->
+        :telemetry.execute([:auth, :refresh, :bad_request], conn)
         conn |> send_resp(400, "bad request") |> halt
     end
   end
@@ -114,14 +121,17 @@ defmodule FootballResults.Plug do
         # Read the ID from a database
         case Enum.filter(@demo_users, fn {a, b} -> a == username && b == password end) do
           [demo_user] when is_tuple(demo_user) ->
+            :telemetry.execute([:auth, :signin, :success], conn)
             user = Map.put(user, :id, 1)
             sign_user(conn, user)
 
           _ ->
+            :telemetry.execute([:auth, :signin, :unauthorized], conn)
             conn |> send_resp(401, "unauthorized") |> halt
         end
 
       _ ->
+        :telemetry.execute([:auth, :signin, :bad_request], conn)
         conn |> send_resp(400, "bad request") |> halt
     end
   end
@@ -147,6 +157,7 @@ defmodule FootballResults.Plug do
   #  Catch all endpoint. Keep it last
   #
   match _ do
+    :telemetry.execute([:http, :not_found], conn)
     send_resp(conn, 404, "not found")
   end
 
